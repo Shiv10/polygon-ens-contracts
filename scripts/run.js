@@ -8,11 +8,19 @@ const main = async () => {
     console.log(`Contract deployed to address: ${domainContract.address}`);
     console.log(`Contract is deployed by: ${owner.address}`);
 
-    const txn = await domainContract.register("doom");
+    let txn = await domainContract.register("doom");
     await txn.wait();
 
     const domainOwner = await domainContract.getAddress("doom");
     console.log(`Owner of domain doom is: ${domainOwner}`);
+
+    txn = await domainContract.setRecord("doom", "I am doctor doom.");
+    await txn.wait();
+    const record = await domainContract.getRecord("doom");
+    console.log(`Got records for domain : doom => ${record}`);
+
+    txn = await domainContract.connect(randomPerson).setRecord("doom", "lmao i can change!");
+    await txn.wait();
 }
 
 const runMain = async () => {
