@@ -20,7 +20,7 @@ contract Domains is ERC721URIStorage {
     mapping (string => address) public domains;
     mapping (string => string ) public records;
 
-    constructor (string memory _tld) payable ERC721("EXE Name Service", "EXS") {
+    constructor (string memory _tld) payable ERC721("EXE Name Service v3", "EXS") {
         tld = _tld;
         console.log("This is the start of the domains contract.");
     }
@@ -76,7 +76,7 @@ contract Domains is ERC721URIStorage {
         _setTokenURI(newRecordId, finalTokenUri);
         domains[name] = msg.sender;
 
-        domains[name] = msg.sender;
+        _tokenIds.increment();
         console.log("%s has regitered the domain: %s", msg.sender, name);
     }
 
