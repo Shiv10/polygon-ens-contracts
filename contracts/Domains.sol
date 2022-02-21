@@ -7,6 +7,10 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import {Base64} from "./libraries/Base64.sol";
 
+error Unauthorized();
+error AlreadyRegistered();
+error InvalidName(string name);
+
 contract Domains is ERC721URIStorage {
 
     using Counters for Counters.Counter;
@@ -21,8 +25,9 @@ contract Domains is ERC721URIStorage {
 
     mapping (string => address) public domains;
     mapping (string => string ) public records;
+    mapping (uint => string) public names;
 
-    constructor (string memory _tld) payable ERC721("EXE Name Service v3", "EXS") {
+    constructor (string memory _tld) payable ERC721("EXE Name Service v3.1", "EXS") {
         owner = payable(msg.sender);
         tld = _tld;
         console.log("This is the start of the domains contract.");
@@ -55,8 +60,14 @@ contract Domains is ERC721URIStorage {
         }
     }
 
+    function checkValidity(string calldata name) public pure returns(bool){
+        return StringUtils.strlen(name)>=3 && StringUtils.strlen(name)<=10;
+    }
+
     function register(string calldata name) public payable {
-        require(domains[name]==address(0), "Domain already registered");
+        
+        if(!checkValidity(name)) revert InvalidName(name);
+        if(domains[name]!=address(0)) revert AlreadyRegistered();
 
         uint _price = price(name);
         require(msg.value >= _price, "Not enough Matic paied");
@@ -91,9 +102,19 @@ contract Domains is ERC721URIStorage {
         _safeMint(msg.sender, newRecordId);
         _setTokenURI(newRecordId, finalTokenUri);
         domains[name] = msg.sender;
-
+        names[newRecordId] = name; 
         _tokenIds.increment();
         console.log("%s has regitered the domain: %s", msg.sender, name);
+    }
+
+    function getAllNames () public view returns (string [] memory) {
+        string[] memory allNames = new string[](_tokenIds.current());
+
+        for(uint i =0; i<_tokenIds.current();i++) {
+            allNames[i] = names[i];
+        }
+
+        return allNames;
     }
 
     function getAddress(string calldata name) public view returns (address) {
@@ -101,7 +122,7 @@ contract Domains is ERC721URIStorage {
     }
 
     function setRecord(string calldata name, string calldata record) public {
-        require(domains[name]==msg.sender, "You are not the owner of the domain.");
+        if(msg.sender!=domains[name]) revert Unauthorized();
         records[name] = record;
     }
 
