@@ -27,7 +27,7 @@ contract Domains is ERC721URIStorage {
     mapping (string => string ) public records;
     mapping (uint => string) public names;
 
-    constructor (string memory _tld) payable ERC721("EXE Name Service v3.1", "EXS") {
+    constructor (string memory _tld) payable ERC721("EXE Name Service v3.3", "EXS") {
         owner = payable(msg.sender);
         tld = _tld;
         console.log("This is the start of the domains contract.");
@@ -66,8 +66,7 @@ contract Domains is ERC721URIStorage {
 
     function register(string calldata name) public payable {
         
-        if(!checkValidity(name)) revert InvalidName(name);
-        if(domains[name]!=address(0)) revert AlreadyRegistered();
+        require(domains[name]==address(0), "Domain already registered");
 
         uint _price = price(name);
         require(msg.value >= _price, "Not enough Matic paied");
@@ -86,7 +85,7 @@ contract Domains is ERC721URIStorage {
                 abi.encodePacked(
                     '{"name": "',
                     _name,
-                    '", "description": "A domain on the Ninja name service", "image": "data:image/svg+xml;base64,',
+                    '", "description": "A domain on the exe name service", "image": "data:image/svg+xml;base64,',
                     Base64.encode(bytes(finalSvg)),
                     '","length":"',
                     strlen,
